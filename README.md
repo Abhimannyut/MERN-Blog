@@ -1,8 +1,8 @@
 
 
-# MERN Blog Application  
+# MERN Blog Website
 
-Welcome to the **MERN Blog Application** repository! This is a fully functional blogging platform built with the MERN stack, offering powerful features and a seamless user experience.  
+Welcome to the **MERN Blog Website** repository! This is a fully functional blogging platform built with the MERN stack, offering powerful features and a seamless user experience.  
 
 ## 📌 Features  
 
@@ -109,9 +109,6 @@ Contributions are welcome! Follow these steps:
 4. Push to the branch (`git push origin feature-name`).  
 5. Open a pull request.  
 
-## 📝 License  
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.  
 
 ## 📧 Contact  
 
