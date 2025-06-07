@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate for redirect
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 function Signup() {
@@ -9,9 +9,16 @@ function Signup() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate(); // Initialize navigate for redirection
+  const navigate = useNavigate();
 
-  // Handle the change for each input field
+  // Validation functions
+  const validateForm = () => {
+    if (username.length < 3) return "Username must be at least 3 characters long.";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "Please enter a valid email address.";
+    if (password.length < 6) return "Password must be at least 6 characters long.";
+    return "";
+  };
+
   const handleUsernameChange = (e) => setUsername(e.target.value);
   const handleEmailChange = (e) => setEmail(e.target.value);
   const handlePasswordChange = (e) => setPassword(e.target.value);
@@ -19,32 +26,42 @@ function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Log data to ensure it's correct
-    console.log("Form Data:", { username, email, password });
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
 
+    console.log("Form Data:", { username, email, password });
     setIsLoading(true);
+    setError("");
+    setSuccess("");
 
     try {
       const response = await axios.post("http://localhost:3000/api/users/signup", {
         username,
         email,
         password,
+      }, {
+        // Include headers if authentication or CORS is required
+        // headers: { 'Content-Type': 'application/json' },
       });
 
-      setSuccess(response.data.message || "Signup successful! Please log in.");
-      setError(""); // Clear error message if any
-      setUsername(""); // Clear the fields after successful signup
+      setSuccess(response.data.message || "Signup successful! Redirecting to Sign In...");
+      setUsername("");
       setEmail("");
       setPassword("");
 
-      // Redirect to the Sign In page after successful signup
       setTimeout(() => {
-        navigate("/signin"); // Redirect to the Sign In page after signup
-      }, 2000); // Delay to show the success message
+        navigate("/signin");
+      }, 2000);
     } catch (err) {
-      console.error("Signup Error:", err);
-      setError(err.response?.data?.message || "Signup failed. Please try again.");
-      setSuccess(""); // Clear success message if any
+      console.error("Signup Error:", err.response?.data || err.message);
+      setError(
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Signup failed. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -53,17 +70,12 @@ function Signup() {
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100">
       <div className="w-full max-w-md bg-white p-6 rounded-lg shadow-md">
-        {/* Blog Logo */}
-        {/* <div className="text-center mb-6">
-          <img src="path/to/your/logo.png" alt="Blog Logo" className="mx-auto h-12 w-auto" />
-        </div> */}
+        <h2 className="text-2xl font-bold mb-4 text-center text-gray-800">Signup</h2>
+        {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+        {success && <p className="text-green-500 text-center mb-4">{success}</p>}
 
-        <h2 className="text-2xl font-bold mb-4 text-center">Signup</h2>
-        {error && <p className="text-red-500 mb-4">{error}</p>}
-        {success && <p className="text-green-500 mb-4">{success}</p>}
-
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
             <label className="block text-gray-700 font-medium mb-2" htmlFor="username">
               Username
             </label>
@@ -73,11 +85,12 @@ function Signup() {
               name="username"
               value={username}
               onChange={handleUsernameChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-200"
               required
+              disabled={isLoading}
             />
           </div>
-          <div className="mb-4">
+          <div>
             <label className="block text-gray-700 font-medium mb-2" htmlFor="email">
               Email
             </label>
@@ -87,11 +100,12 @@ function Signup() {
               name="email"
               value={email}
               onChange={handleEmailChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-200"
               required
+              disabled={isLoading}
             />
           </div>
-          <div className="mb-4">
+          <div>
             <label className="block text-gray-700 font-medium mb-2" htmlFor="password">
               Password
             </label>
@@ -101,22 +115,22 @@ function Signup() {
               name="password"
               value={password}
               onChange={handlePasswordChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-200"
               required
+              disabled={isLoading}
             />
           </div>
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
+            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-all duration-300 disabled:bg-blue-400"
             disabled={isLoading}
           >
             {isLoading ? "Signing up..." : "Signup"}
           </button>
         </form>
 
-        {/* Redirect to Sign In page */}
         <div className="text-center mt-4">
-          <p className="text-sm">
+          <p className="text-sm text-gray-600">
             Already have an account?{" "}
             <a href="/signin" className="text-blue-600 hover:underline">
               Sign in here

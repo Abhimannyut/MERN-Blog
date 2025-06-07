@@ -13,29 +13,50 @@ function SignIn() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  const validateForm = () => {
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return 'Please enter a valid email address.';
+    }
+    if (!password || password.length < 6) {
+      return 'Password must be at least 6 characters long.';
+    }
+    return '';
+  };
+
   const handleEmailChange = (e) => setEmail(e.target.value);
   const handlePasswordChange = (e) => setPassword(e.target.value);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
     setIsLoading(true);
+    setError('');
+
     try {
+      console.log('Signin Attempt - Email:', email, 'Password:', password);
       const response = await axios.post('http://localhost:3000/api/users/signin', { email, password });
 
       const { token, user } = response.data;
 
-      // Dispatch actions to update the Redux store
       dispatch(setAuthToken(token));
       dispatch(setUser(user));
 
-      // Save the token in localStorage for persistence
       localStorage.setItem('authToken', token);
 
-      // Redirect to the dashboard or home page
       navigate('/dashboard');
     } catch (err) {
-      console.error('Login Error:', err);
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      console.error('Login Error:', err.response?.data || err.message);
+      setError(
+        err.response?.data?.message === 'Incorrect password'
+          ? 'Incorrect password. Please try again.'
+          : err.response?.data?.message || 'Login failed. Please try again.'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -44,10 +65,10 @@ function SignIn() {
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100">
       <div className="w-full max-w-md bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold mb-4 text-center">Sign In</h2>
-        {error && <p className="text-red-500 mb-4">{error}</p>}
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
+        <h2 className="text-2xl font-bold mb-4 text-center text-gray-800">Sign In</h2>
+        {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
             <label className="block text-gray-700 font-medium mb-2" htmlFor="email">
               Email
             </label>
@@ -56,11 +77,12 @@ function SignIn() {
               id="email"
               value={email}
               onChange={handleEmailChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-200"
               required
+              disabled={isLoading}
             />
           </div>
-          <div className="mb-4">
+          <div>
             <label className="block text-gray-700 font-medium mb-2" htmlFor="password">
               Password
             </label>
@@ -69,22 +91,22 @@ function SignIn() {
               id="password"
               value={password}
               onChange={handlePasswordChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-200"
               required
+              disabled={isLoading}
             />
           </div>
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
+            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-all duration-300 disabled:bg-blue-400"
             disabled={isLoading}
           >
             {isLoading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 
-        {/* Link to SignUp Page */}
         <div className="text-center mt-4">
-          <p className="text-sm">
+          <p className="text-sm text-gray-600">
             Don't have an account?{' '}
             <a href="/signup" className="text-blue-600 hover:underline">
               Sign up here
